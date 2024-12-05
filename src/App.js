@@ -1,25 +1,40 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import { fetchCameras, updateCameraStatus } from "./services/api";
+import CameraList from "./components/CameraList";
 
-function App() {
+const App = () => {
+  const [cameraData, setCameraData] = useState([]);
+
+  useEffect(() => {
+    fetchCameras()
+      .then((response) => setCameraData(response.data.data))
+      .catch((error) => console.error("Error fetching camera data:", error));
+  }, []);
+  console.log('cameraData : ', cameraData.data);
+  const handleDelete = (id) => {
+    setCameraData(cameraData?.filter((camera) => camera.id !== id));
+  };
+
+  const handleToggleStatus = (id, currentStatus) => {
+    const newStatus = currentStatus === "Active" ? "Inactive" : "Active";
+    updateCameraStatus(id, newStatus).then(() =>
+      setCameraData((prevData) =>
+        prevData.map((camera) =>
+          camera.id === id ? { ...camera, status: newStatus } : camera
+        )
+      )
+    );
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <CameraList
+        cameraData={cameraData}
+        onDelete={handleDelete}
+        onToggleStatus={handleToggleStatus}
+      />
     </div>
   );
-}
+};
 
 export default App;
